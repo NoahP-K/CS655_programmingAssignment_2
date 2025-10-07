@@ -98,6 +98,66 @@ public class StudentNetworkSimulator extends NetworkSimulator
     // state information for A or B.
     // Also add any necessary methods (e.g. checksum of a String)
 
+    //side A class variables:
+    int numTransmittedPackets_A;    //number of unique packets sent by A
+    int numRetransmissions_A;   //number of retransmissions from A
+    int numAcksReceived_A;  //number of acks that A receives from B
+    Vector<Integer> outstandingPackets;   //vector to show current outstanding packets
+
+    //side B class variables:
+    int numLayer5Deliveries_B;  //number of packets delivered to layer 5 of B
+    int numAcksSent_B;  //number of ACK messages sent by B
+
+    //general class variables
+    int numCorruptPackets;  //total number of corrupted packets encountered
+
+    //general class methods
+    //returns ratio of lost packets
+    private double lostPacketRatio() {
+        return
+                (double) (numRetransmissions_A - numCorruptPackets)
+                        / ((numTransmittedPackets_A + numRetransmissions_A) + numAcksSent_B);
+    }
+
+    //returns ratio of corrupted packets
+    private double corruptPacketRatio() {
+        return
+                (double) numCorruptPackets
+                        / ((numTransmittedPackets_A + numRetransmissions_A) + numAcksSent_B
+                        - (numRetransmissions_A - numCorruptPackets));
+    }
+
+    //helper method, calculates a checksum to add to a message header
+    private int createChecksum(String payload){
+        //corruption is only applied to the message string of a packet in this code, so the checksum
+        // will only account for the message string.
+        //This method uses the 1s complement checksum with the bits of the characters in the string
+        int sum = 0;
+        for (char c : payload.toCharArray()) {
+            sum += c;              //add the int value of the character
+            sum = (sum & 0xFF) + (sum >> 8);  //remove overflow bits and add them back to the sum
+        }
+        sum ^= 0xFF;    //invert bits
+        return sum;
+    }
+
+    //gets checksum and adds it to given packet
+    // In this code, the checksum is NOT optional so no extra steps are needed to handle all-0s checksums
+    private void addChecksum(Packet packet){
+        int checksum = createChecksum(packet.getPayload());
+        packet.setChecksum(checksum);
+    }
+
+    //verifies the checksum of a received message
+    private boolean verifyChecksum(Packet packet){
+        //Since the checksum is generated with 1s complement and the bits of the characters in the string,
+        // it is verified in the same way.
+        int checksum = createChecksum(packet.getPayload());
+        checksum += packet.getChecksum();
+
+        return checksum == 0;
+    }
+
     // This is the constructor.  Don't touch!
     public StudentNetworkSimulator(int numMessages,
                                    double loss,
@@ -121,7 +181,8 @@ public class StudentNetworkSimulator extends NetworkSimulator
     // the receiving upper layer.
     protected void aOutput(Message message)
     {
-
+        //you need to create a packet, then call toLayer3 to send it to layer 3.
+        //The event creation for the timeline should already be handled.
     }
     
     // This routine will be called whenever a packet sent from the B-side 
@@ -130,7 +191,14 @@ public class StudentNetworkSimulator extends NetworkSimulator
     // sent from the B-side.
     protected void aInput(Packet packet)
     {
+        //I'll need a checksum calculation process.
+        //Perhaps 1's complement?
 
+        //In any case, check the checksum for corruption
+
+        //if the ack is valid, figure out a way to track the packets with valid acks
+        //if this is the last packet we need an ack for, stop the timer
+        //AND then restart it since we're sending new packets (?)
     }
     
     // This routine will be called when A's timer expires (thus generating a 
@@ -139,7 +207,10 @@ public class StudentNetworkSimulator extends NetworkSimulator
     // for how the timer is started and stopped. 
     protected void aTimerInterrupt()
     {
-
+        //consider the aforementioned tracking of outstanding packets that were just acked
+        //If this occurs, we need to check which packets need to be retransmitted
+        //then we need to retransmit them
+        //AND we need to restart the timer (?)
     }
     
     // This routine will be called once, before any of your other A-side 
@@ -148,7 +219,11 @@ public class StudentNetworkSimulator extends NetworkSimulator
     // of entity A).
     protected void aInit()
     {
-
+        numTransmittedPackets_A = 0;
+        numRetransmissions_A = 0;
+        numCorruptPackets = 0;
+        numAcksReceived_A = 0;
+        outstandingPackets = new Vector<>();
     }
     
     // This routine will be called whenever a packet sent from the B-side 
@@ -166,7 +241,8 @@ public class StudentNetworkSimulator extends NetworkSimulator
     // of entity B).
     protected void bInit()
     {
-
+        numAcksSent_B = 0;
+        numLayer5Deliveries_B = 0;
     }
 
     // Use to print final statistics
@@ -174,21 +250,20 @@ public class StudentNetworkSimulator extends NetworkSimulator
     {
     	// TO PRINT THE STATISTICS, FILL IN THE DETAILS BY PUTTING VARIBALE NAMES. DO NOT CHANGE THE FORMAT OF PRINTED OUTPUT
     	System.out.println("\n\n===============STATISTICS=======================");
-    	System.out.println("Number of original packets transmitted by A:" + "<YourVariableHere>");
-    	System.out.println("Number of retransmissions by A:" + "<YourVariableHere>");
-    	System.out.println("Number of data packets delivered to layer 5 at B:" + "<YourVariableHere>");
-    	System.out.println("Number of ACK packets sent by B:" + "<YourVariableHere>");
-    	System.out.println("Number of corrupted packets:" + "<YourVariableHere>");
-    	System.out.println("Ratio of lost packets:" + "<YourVariableHere>" );
-    	System.out.println("Ratio of corrupted packets:" + "<YourVariableHere>");
+    	System.out.println("Number of original packets transmitted by A: " + numTransmittedPackets_A);
+    	System.out.println("Number of retransmissions by A: " + numRetransmissions_A);
+    	System.out.println("Number of data packets delivered to layer 5 at B: " + numLayer5Deliveries_B);
+    	System.out.println("Number of ACK packets sent by B: " + numAcksSent_B);
+    	System.out.println("Number of corrupted packets: " + numCorruptPackets);
+    	System.out.println("Ratio of lost packets: " + lostPacketRatio());
+    	System.out.println("Ratio of corrupted packets: " + corruptPacketRatio());
     	System.out.println("Average RTT:" + "<YourVariableHere>");
     	System.out.println("Average communication time:" + "<YourVariableHere>");
     	System.out.println("==================================================");
 
     	// PRINT YOUR OWN STATISTIC HERE TO CHECK THE CORRECTNESS OF YOUR PROGRAM
     	System.out.println("\nEXTRA:");
-    	// EXAMPLE GIVEN BELOW
-    	//System.out.println("Example statistic you want to check e.g. number of ACK packets received by A :" + "<YourVariableHere>"); 
+    	System.out.println("Number of ACK packets received by A: " + numAcksReceived_A);
     }	
 
 }

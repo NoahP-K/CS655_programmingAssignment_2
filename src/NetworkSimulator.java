@@ -152,8 +152,7 @@ public abstract class NetworkSimulator
                     nSim++;
 
                     // If we've reached the maximum message count, exit the main loop
-		    if (nSim == maxMessages+1)
-			break;
+                    if (nSim == maxMessages+1) break;
                     
                     // Let the student handle the new message
                     aOutput(new Message(new String(nextMessage)));
@@ -162,15 +161,14 @@ public abstract class NetworkSimulator
                 default:
                     System.out.println("INTERNAL PANIC: Unknown event type");
             }
-	    if (nSim == maxMessages+1)
-		break;
+	    if (nSim == maxMessages+1) break;
         }
         System.out.println("Simulator terminated at time "+getTime());
         Simulation_done();
-	try{
-	    outFile.flush();
-	    outFile.close();
-	}catch (Exception e) {e.printStackTrace();}
+        try{
+            outFile.flush();
+            outFile.close();
+        }catch (Exception e) {e.printStackTrace();}
     }
     
     /* Generate the next arrival and add it to the event list */
@@ -307,13 +305,8 @@ public abstract class NetworkSimulator
             if (x < 0.75)
             {
                 String payload = packet.getPayload();
-                
-		if (payload.length()>0)
-                
-		    payload = "?" + payload.substring(1);
-		
-		else payload = "?";
-                
+                if (payload.length()>0) payload = "?" + payload.substring(1);
+                else payload = "?";
                 packet.setPayload(payload);
             }
             else if (x < 0.875)
