@@ -350,6 +350,18 @@ public class StudentNetworkSimulator extends NetworkSimulator
                 // head and the newest cumack inclusive
                 if(isBetween(p.getSeqnum(), sendWindowHead, packet.getAcknum())) {
                     packetsToRemove.add(p);
+                    //Since the packet is being acked, we should make sure to cancel the time measurements
+                    // if necessary
+                    if(p.getSeqnum() == seqForRTT){
+                        numRTTs++;
+                        RTTSum += getTime() - RTTStartTime;
+                        seqForRTT = -1;
+                    }
+                    if(p.getSeqnum() == seqForComms){
+                        numComms++;
+                        commsSum += getTime() - commsStartTime;
+                        seqForComms = -1;
+                    }
                 }
             }
             for(Packet p : packetsToRemove){outstandingPackets.remove(p);}
@@ -467,14 +479,6 @@ public class StudentNetworkSimulator extends NetworkSimulator
 
         //check for a duplicate by checking if this packet is in the current
         // input buffer. If it already is there, ignore it but send a cumack again.
-//        if(isBetween(packet.getSeqnum(), recvWindowHead, lastAcked)) {
-//            Packet newAck = new Packet(-1, lastAcked, 0, "");
-//            addChecksum(newAck);
-//            toLayer3(B, newAck);
-//            numAcksSent_B++;
-//            //System.out.println("B found duplicate");
-//            return;
-//        }
         for(Packet p : inputBuffer){
             if(p.getSeqnum() == packet.getSeqnum()) {
                 bRetransmitCumack();
