@@ -1,3 +1,6 @@
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -568,6 +571,12 @@ public class StudentNetworkSimulator extends NetworkSimulator
         System.out.println("Number of corrupted messages received by B: " + numCorruptMsgs_B);
         System.out.println("Number of packets dropped due to full send buffer: " + numUnbufferedMsgs);
         System.out.println("Number of packets sent to output buffer by A: " + numBufferedMsgs);
-    }	
+
+    }
+
+    //returns time stats to be used in data compilation
+    public double[] getTimeStats() {
+        return new double[] {RTTSum/numRTTs, commsSum/numComms};
+    }
 
 }

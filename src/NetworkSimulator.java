@@ -32,7 +32,8 @@ public abstract class NetworkSimulator
     private int nLost;
     private int nCorrupt;
     private double time;
-    
+
+    protected String fileName;  //Added myself; used for data collection
     
     protected abstract void aOutput(Message message);
     protected abstract void aInput(Packet packet);
@@ -57,6 +58,7 @@ public abstract class NetworkSimulator
         traceLevel = trace;
         eventList = new EventListImpl();
         rand = new OSIRandom(seed);
+        this.fileName = fileName;
 	try{
 	    outFile = new FileWriter("OutputFile");
 	}catch (Exception e) {e.printStackTrace();}

@@ -24,7 +24,7 @@ public class Project
         while (nsim < 1)
         {
             System.out.print("Enter number of messages to simulate (> 0): " +
-                             "[10] ");
+                             "[1000] ");
             try
             {
                 buffer = stdIn.readLine();
@@ -37,7 +37,7 @@ public class Project
             
             if (buffer.equals(""))
             {
-                nsim = 10;
+                nsim = 1000;
             }
             else
             {            
@@ -177,7 +177,7 @@ public class Project
 
 	while (timeout <= 0)
         {
-            System.out.print("Enter retransmission timeout (>0.0) [15.0] ");
+            System.out.print("Enter retransmission timeout (>0.0) [30.0] ");
             try
             {
                 buffer = stdIn.readLine();
@@ -190,7 +190,7 @@ public class Project
             
             if (buffer.equals(""))
             {
-                timeout = 15.0;
+                timeout = 30.0;
             }
             else
             {            
